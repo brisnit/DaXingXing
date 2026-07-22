@@ -6,25 +6,70 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
 
-  /* Dark, industrial by default — this is the platform's native look */
   --radius: 0.5rem;
 
-  --background: 150 24% 11%; /* forest #17251D */
-  --foreground: 45 34% 93%; /* bone #F3F0E7 */
+  /* ---- LIGHT THEME (default) ---------------------------------------------
+     White canvas, dark forest text, and dark CTAs. Earth-tone accents are
+     shifted darker so they stay legible on white. */
+  --background: 40 30% 99%; /* essentially white, faint warm cast */
+  --foreground: 152 24% 12%; /* deep forest text */
 
-  --card: 156 8% 12%; /* charcoal */
+  --card: 0 0% 100%;
+  --card-foreground: 152 24% 12%;
+
+  --primary: 152 26% 15%; /* dark forest — CTAs */
+  --primary-foreground: 45 34% 95%;
+
+  --secondary: 44 28% 92%;
+  --secondary-foreground: 152 24% 18%;
+
+  --muted: 44 26% 94%;
+  --muted-foreground: 150 7% 40%;
+
+  --accent: 84 22% 34%; /* olive */
+  --accent-foreground: 45 34% 95%;
+
+  --destructive: 8 62% 46%;
+  --destructive-foreground: 45 34% 96%;
+
+  --border: 44 18% 86%;
+  --input: 44 18% 88%;
+  --ring: 152 26% 20%;
+
+  /* Brand spectrum — light values */
+  --brand-forest: 40 22% 99%; /* base surface (bg-forest) */
+  --brand-forest-deep: 42 30% 96%; /* alternating band */
+  --brand-military: 120 16% 42%; /* green accent for gradients */
+  --brand-olive: 84 22% 32%;
+  --brand-mustard: 40 60% 38%; /* darker ochre — legible on white */
+  --brand-mustard-bright: 40 62% 44%;
+  --brand-khaki: 44 15% 44%; /* muted label text */
+  --brand-earth: 28 24% 38%;
+  --brand-sand: 40 24% 58%;
+  --brand-charcoal: 42 28% 97%; /* near-white surface */
+  --brand-bone: 152 24% 12%;
+
+  --grid-line: rgba(89, 71, 53, 0.07);
+}
+
+.dark {
+  /* ---- INDUSTRIAL DARK THEME --------------------------------------------- */
+  --background: 150 24% 11%;
+  --foreground: 45 34% 93%;
+
+  --card: 156 8% 12%;
   --card-foreground: 45 34% 93%;
 
-  --primary: 46 49% 52%; /* mustard #C1A548 */
+  --primary: 46 49% 52%; /* mustard */
   --primary-foreground: 150 30% 8%;
 
-  --secondary: 120 16% 24%; /* military green */
+  --secondary: 120 16% 24%;
   --secondary-foreground: 45 34% 93%;
 
   --muted: 150 12% 16%;
   --muted-foreground: 44 20% 68%;
 
-  --accent: 84 22% 37%; /* olive */
+  --accent: 84 22% 37%;
   --accent-foreground: 45 34% 93%;
 
   --destructive: 8 60% 45%;
@@ -33,6 +78,20 @@
   --border: 120 12% 22%;
   --input: 120 12% 20%;
   --ring: 46 49% 52%;
+
+  --brand-forest: 150 24% 11%;
+  --brand-forest-deep: 150 25% 8%;
+  --brand-military: 116 19% 24%;
+  --brand-olive: 84 22% 37%;
+  --brand-mustard: 46 49% 52%;
+  --brand-mustard-bright: 46 62% 60%;
+  --brand-khaki: 44 37% 67%;
+  --brand-earth: 30 26% 28%;
+  --brand-sand: 44 47% 81%;
+  --brand-charcoal: 140 6% 12%;
+  --brand-bone: 45 34% 93%;
+
+  --grid-line: rgba(200, 185, 140, 0.05);
 }
 
 * {
@@ -48,11 +107,8 @@ body {
 
 /* Technical / blueprint helpers */
 .blueprint {
-  background-image: linear-gradient(
-      rgba(200, 185, 140, 0.05) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(200, 185, 140, 0.05) 1px, transparent 1px);
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -77,7 +133,7 @@ body {
 }
 
 ::selection {
-  background: hsl(var(--primary) / 0.35);
+  background: hsl(var(--primary) / 0.18);
 }
 
 /* Scrollbar */

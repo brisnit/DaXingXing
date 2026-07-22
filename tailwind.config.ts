@@ -15,22 +15,25 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Da Xing Xing military earth-tone spectrum
+        // Da Xing Xing military earth-tone spectrum.
+        // Variable-backed so the whole app can switch between the light theme
+        // (default) and the industrial dark theme (`.dark` on <html>) without
+        // touching any page. Channel values live in globals.css.
         forest: {
-          DEFAULT: "#17251D", // Deep Forest — primary background
-          deep: "#0F1913",
+          DEFAULT: "hsl(var(--brand-forest))",
+          deep: "hsl(var(--brand-forest-deep))",
         },
-        military: "#344A32",
-        olive: "#64714A",
+        military: "hsl(var(--brand-military))",
+        olive: "hsl(var(--brand-olive))",
         mustard: {
-          DEFAULT: "#C1A548",
-          bright: "#D8BC5A",
+          DEFAULT: "hsl(var(--brand-mustard))",
+          bright: "hsl(var(--brand-mustard-bright))",
         },
-        khaki: "#C8B98C",
-        earth: "#594735",
-        sand: "#E4D8BA",
-        charcoal: "#1D211E",
-        bone: "#F3F0E7",
+        khaki: "hsl(var(--brand-khaki))",
+        earth: "hsl(var(--brand-earth))",
+        sand: "hsl(var(--brand-sand))",
+        charcoal: "hsl(var(--brand-charcoal))",
+        bone: "hsl(var(--brand-bone))",
 
         // Semantic tokens (driven by CSS variables in globals.css)
         border: "hsl(var(--border))",
