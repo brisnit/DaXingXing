@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Dark, industrial by default — this is the platform's native look */
+  --radius: 0.5rem;
+
+  --background: 150 24% 11%; /* forest #17251D */
+  --foreground: 45 34% 93%; /* bone #F3F0E7 */
+
+  --card: 156 8% 12%; /* charcoal */
+  --card-foreground: 45 34% 93%;
+
+  --primary: 46 49% 52%; /* mustard #C1A548 */
+  --primary-foreground: 150 30% 8%;
+
+  --secondary: 120 16% 24%; /* military green */
+  --secondary-foreground: 45 34% 93%;
+
+  --muted: 150 12% 16%;
+  --muted-foreground: 44 20% 68%;
+
+  --accent: 84 22% 37%; /* olive */
+  --accent-foreground: 45 34% 93%;
+
+  --destructive: 8 60% 45%;
+  --destructive-foreground: 45 34% 93%;
+
+  --border: 120 12% 22%;
+  --input: 120 12% 20%;
+  --ring: 46 49% 52%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "ss01", "cv01", "cv03";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Technical / blueprint helpers */
+.blueprint {
+  background-image: linear-gradient(
+      rgba(200, 185, 140, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(200, 185, 140, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.hairline {
+  border-top: 1px solid hsl(var(--border));
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.35);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
+}

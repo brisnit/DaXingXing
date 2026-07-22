@@ -1,0 +1,45 @@
+import type { ProductCategory } from "@/types";
+import { slugify } from "@/lib/utils";
+
+const raw: Array<[string, string, boolean?, string?]> = [
+  ["Audio", "Speakers, headphones, and portable sound systems."],
+  ["Video", "Cameras, displays, and capture accessories.", true, "Wireless and display products may require FCC/CE and EMC testing."],
+  ["Consumer Electronics", "Connected devices and everyday electronics.", true, "Electronics require electrical safety and emissions certification."],
+  ["Smart Home", "Sensors, hubs, and connected home hardware.", true, "Wireless radios require regional RF certification."],
+  ["Furniture", "Seating, tables, storage, and modular systems."],
+  ["Lighting", "Lamps, fixtures, and LED products.", true, "Powered lighting requires electrical safety certification."],
+  ["Toys and Games", "Play products for kids and adults.", true, "Children's products require CPSIA, ASTM F963, and small-parts testing."],
+  ["Baby Products", "Gear and accessories for infants.", true, "Juvenile products carry strict CPSC safety requirements."],
+  ["Kitchen Products", "Cookware, tools, and food-prep gear.", true, "Food-contact materials require FDA/LFGB compliance."],
+  ["Home Goods", "Decor, textiles, and household essentials."],
+  ["Outdoor Products", "Gear built for the field and trail."],
+  ["Sporting Goods", "Equipment for sport and recreation."],
+  ["Fitness Equipment", "Training and performance hardware."],
+  ["Travel Products", "Organizers and travel-ready accessories."],
+  ["Bags and Luggage", "Packs, cases, and carry systems."],
+  ["Fashion Accessories", "Wearable and lifestyle accessories."],
+  ["Pet Products", "Gear and comfort for animals."],
+  ["Office Products", "Desk, workspace, and organization tools."],
+  ["Tools and Hardware", "Hand tools, fixtures, and hardware."],
+  ["Automotive Accessories", "In-vehicle and aftermarket products.", true, "Automotive parts may require DOT/SAE compliance."],
+  ["Personal Care", "Grooming and daily-use products.", true, "Skin-contact and cosmetic items may require compliance review."],
+  ["Beauty Tools", "Devices and implements for beauty routines."],
+  ["Health and Wellness Devices", "Consumer wellness hardware.", true, "May trigger medical-device classification and FDA review."],
+  ["Packaging", "Protective, retail, and sustainable packaging."],
+  ["Promotional Products", "Branded merchandise at volume."],
+  ["Educational Products", "Learning tools and STEM kits."],
+  ["Musical Instruments", "Acoustic and electronic instruments."],
+  ["Creator Equipment", "Gear for content creators and studios."],
+  ["Retail Displays", "Fixtures and point-of-sale displays."],
+  ["Hospitality Products", "Products for hotels and service venues."],
+  ["Industrial Products", "Durable goods for industrial use."],
+  ["Custom Components", "Bespoke parts and sub-assemblies."],
+];
+
+export const categories: ProductCategory[] = raw.map(([name, blurb, regulated, note]) => ({
+  name,
+  slug: slugify(name),
+  blurb,
+  regulated: regulated ?? false,
+  regulationNote: note,
+}));
