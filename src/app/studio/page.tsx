@@ -29,9 +29,21 @@ import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ProductRender } from "@/components/product/product-render";
 import { getAiProvider, type DesignReply } from "@/lib/ai/provider";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
+import {
+  ProductCanvasSVG,
+  viewsFor,
+  readouts,
+  defaultDesign,
+  MATERIAL_PRESETS,
+  QUICK_COLORS,
+  FEATURE_CONFIG,
+  PRODUCT_NAMES,
+  type Design,
+  type Archetype,
+  type Finish,
+} from "@/components/studio/product-canvas";
 
 type Msg = {
   role: "user" | "assistant";
@@ -39,17 +51,34 @@ type Msg = {
   reply?: DesignReply;
 };
 
-const CANVAS_VIEWS = [
-  { key: "front", label: "Front View", seed: "#344A32" },
-  { key: "back", label: "Back View", seed: "#2C3D2B" },
-  { key: "side", label: "Side View", seed: "#3B4F39" },
-  { key: "top", label: "Top View", seed: "#405640" },
-  { key: "exploded", label: "Exploded View", seed: "#64714A" },
-  { key: "dimension", label: "Dimension View", seed: "#17251D" },
-  { key: "material", label: "Material View", seed: "#594735" },
-  { key: "internal", label: "Internal View", seed: "#1D211E" },
-  { key: "packaging", label: "Packaging View", seed: "#C8B98C" },
+const ARCHETYPES: { key: Archetype; label: string }[] = [
+  { key: "speaker", label: "Rugged Speaker" },
+  { key: "lamp", label: "Desk Lamp" },
+  { key: "tumbler", label: "Tumbler" },
 ];
+const FINISHES: Finish[] = ["matte", "satin", "gloss", "textured"];
+
+/** Map an approved AI change onto the visual design so the canvas reacts. */
+function applyChangeToDesign(prev: Design, text: string): Design {
+  const t = text.toLowerCase();
+  let next = { ...prev, features: { ...prev.features } };
+  if (t.includes("aluminum") || t.includes("aluminium")) {
+    const m = MATERIAL_PRESETS.find((x) => x.name.includes("Aluminum"))!;
+    next = { ...next, shell: m.color, material: m.name, texture: m.texture, weightFactor: m.weightFactor, costDelta: m.costDelta };
+  }
+  if (t.includes("usb-c") || t.includes("usb c") || t.includes("port")) {
+    if ("usbc" in next.features) next.features.usbc = true;
+  }
+  if (t.includes("children") || t.includes("kid")) {
+    next.size = 0.85;
+    next.shell = "#C1A548";
+  }
+  if (t.includes("$79") || t.includes("recycled abs") || t.includes("lower-cost") || t.includes("cheaper")) {
+    const m = MATERIAL_PRESETS[0];
+    next = { ...next, shell: m.color, material: m.name, texture: m.texture, weightFactor: m.weightFactor, costDelta: m.costDelta };
+  }
+  return next;
+}
 
 const CONFIG_SECTIONS: {
   group: string;
@@ -148,7 +177,8 @@ const SPEC_SECTIONS = [
 
 export default function StudioPage() {
   const ai = React.useMemo(() => getAiProvider(), []);
-  const [view, setView] = React.useState(CANVAS_VIEWS[0]);
+  const [design, setDesign] = React.useState<Design>(() => defaultDesign("speaker"));
+  const [view, setView] = React.useState("front");
   const [rightTab, setRightTab] = React.useState<"config" | "spec">("config");
   const [input, setInput] = React.useState("");
   const [thinking, setThinking] = React.useState(false);
@@ -188,15 +218,33 @@ export default function StudioPage() {
       ...c,
       ...reply.proposedChanges.map((p) => `${p.field} → ${p.to}`),
     ]);
+    // Drive the visual canvas from the approved change.
+    setDesign((prev) => {
+      let d = prev;
+      reply.proposedChanges.forEach((p) => {
+        d = applyChangeToDesign(d, `${p.field} ${p.to}`);
+      });
+      return d;
+    });
     setMessages((m) => [
       ...m,
       {
         role: "assistant",
         content:
-          "Applied to your living specification and logged in the revision history. Anything else you'd like to adjust?",
+          "Applied to your living specification and reflected on the Product Canvas. Logged in the revision history — anything else you'd like to adjust?",
       },
     ]);
   };
+
+  const chooseArchetype = (a: Archetype) => {
+    setDesign(defaultDesign(a));
+    setView("front");
+  };
+  const patch = (p: Partial<Design>) => setDesign((d) => ({ ...d, ...p }));
+  const toggleFeature = (key: string) =>
+    setDesign((d) => ({ ...d, features: { ...d.features, [key]: !d.features[key] } }));
+
+  const r = readouts(design);
 
   return (
     <div className="flex h-screen flex-col bg-forest-deep">
@@ -209,9 +257,9 @@ export default function StudioPage() {
           <Wordmark markClassName="h-6 w-6" />
           <span className="hidden h-4 w-px bg-border sm:block" />
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold leading-tight">Trailhead Rugged Speaker</p>
+            <p className="text-sm font-semibold leading-tight">{PRODUCT_NAMES[design.archetype]}</p>
             <span className="mono-label text-[0.6rem] text-khaki/60">
-              Studio · Concept
+              Studio · Concept · {design.material}
             </span>
           </div>
         </div>
@@ -232,17 +280,37 @@ export default function StudioPage() {
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-12">
         {/* 1. Product Canvas */}
         <section className="flex min-h-0 flex-col border-b border-border lg:col-span-4 lg:border-b-0 lg:border-r">
-          <PanelHeader icon={Boxes} title="Product Canvas" hint="AI concept views" />
+          <PanelHeader icon={Boxes} title="Product Canvas" hint="Manipulate · live concept" />
           <div className="flex-1 overflow-y-auto p-4">
-            <ProductRender seed={view.seed} label={view.label} />
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {CANVAS_VIEWS.map((v) => (
+            {/* Preset products */}
+            <div className="mb-3 flex gap-1.5">
+              {ARCHETYPES.map((a) => (
+                <button
+                  key={a.key}
+                  onClick={() => chooseArchetype(a.key)}
+                  className={cn(
+                    "flex-1 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                    design.archetype === a.key
+                      ? "border-primary/60 bg-primary/10 text-primary"
+                      : "border-border text-foreground/70 hover:bg-secondary/40"
+                  )}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+
+            <ProductCanvasSVG design={design} view={view} />
+
+            {/* View selector */}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {viewsFor(design.archetype).map((v) => (
                 <button
                   key={v.key}
-                  onClick={() => setView(v)}
+                  onClick={() => setView(v.key)}
                   className={cn(
-                    "rounded-md border px-2 py-2 text-xs font-medium transition-colors",
-                    view.key === v.key
+                    "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    view === v.key
                       ? "border-primary/60 bg-primary/10 text-primary"
                       : "border-border text-foreground/70 hover:bg-secondary/40"
                   )}
@@ -251,13 +319,120 @@ export default function StudioPage() {
                 </button>
               ))}
             </div>
-            <div className="mt-4 rounded-lg border border-border bg-forest p-3">
-              <p className="mono-label text-khaki/60">Interactive 3D · Coming soon</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                MVP uses generated concept views. Architecture is ready for 3D
-                model and CAD integration.
-              </p>
+
+            {/* Live spec readout */}
+            <div className="mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-border bg-border">
+              {[
+                { k: "Size", v: `${r.w}×${r.h}×${r.depth}mm` },
+                { k: "Weight", v: `${r.weight} g` },
+                { k: "Water", v: r.water },
+                { k: "Finish", v: design.finish },
+                { k: "Material", v: design.material },
+                { k: "Est. unit", v: `${formatCurrency(r.costLow)}–${formatCurrency(r.costHigh)}` },
+              ].map((s) => (
+                <div key={s.k} className="bg-card p-2">
+                  <p className="mono-label text-[0.55rem] text-khaki">{s.k}</p>
+                  <p className="mt-0.5 truncate text-xs font-medium capitalize text-foreground">{s.v}</p>
+                </div>
+              ))}
             </div>
+
+            {/* Shell color */}
+            <ControlBlock icon={Palette} label="Shell color">
+              <div className="flex flex-wrap gap-1.5">
+                {QUICK_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => patch({ shell: c })}
+                    aria-label={`Shell ${c}`}
+                    className={cn(
+                      "size-7 rounded-md border-2 transition-transform hover:scale-110",
+                      design.shell.toLowerCase() === c.toLowerCase() ? "border-primary" : "border-border"
+                    )}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </ControlBlock>
+
+            {/* Material */}
+            <ControlBlock icon={Layers} label="Material">
+              <div className="grid grid-cols-2 gap-1.5">
+                {MATERIAL_PRESETS.map((m) => (
+                  <button
+                    key={m.name}
+                    onClick={() =>
+                      patch({ shell: m.color, material: m.name, texture: m.texture, weightFactor: m.weightFactor, costDelta: m.costDelta })
+                    }
+                    className={cn(
+                      "flex items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+                      design.material === m.name ? "border-primary/60 bg-primary/10" : "border-border hover:bg-secondary/40"
+                    )}
+                  >
+                    <span className="size-3.5 shrink-0 rounded-sm border border-border" style={{ backgroundColor: m.color }} />
+                    <span className="truncate">{m.name}</span>
+                  </button>
+                ))}
+              </div>
+            </ControlBlock>
+
+            {/* Finish */}
+            <ControlBlock icon={Sparkles} label="Finish">
+              <div className="flex gap-1.5">
+                {FINISHES.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => patch({ finish: f })}
+                    className={cn(
+                      "flex-1 rounded-md border px-2 py-1 text-xs capitalize transition-colors",
+                      design.finish === f ? "border-primary/60 bg-primary/10 text-primary" : "border-border text-foreground/70 hover:bg-secondary/40"
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </ControlBlock>
+
+            {/* Features */}
+            <ControlBlock icon={SlidersHorizontal} label="Features">
+              <div className="flex flex-wrap gap-1.5">
+                {FEATURE_CONFIG[design.archetype].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => toggleFeature(f.key)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                      design.features[f.key]
+                        ? "border-primary/60 bg-primary/10 text-primary"
+                        : "border-border text-foreground/60 hover:bg-secondary/40"
+                    )}
+                  >
+                    <span className={cn("size-1.5 rounded-full", design.features[f.key] ? "bg-primary" : "bg-muted-foreground/40")} />
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </ControlBlock>
+
+            {/* Size */}
+            <ControlBlock icon={Ruler} label={`Overall size · ${Math.round(design.size * 100)}%`}>
+              <input
+                type="range"
+                min={0.8}
+                max={1.2}
+                step={0.02}
+                value={design.size}
+                onChange={(e) => patch({ size: parseFloat(e.target.value) })}
+                className="w-full accent-[hsl(var(--primary))]"
+              />
+            </ControlBlock>
+
+            <p className="mt-4 text-xs text-muted-foreground">
+              Live concept placeholder — decisions here update the views and
+              estimates instantly, and approved AI changes reflect here too.
+              Architecture is ready for real 3D / CAD later.
+            </p>
           </div>
         </section>
 
@@ -450,6 +625,26 @@ export default function StudioPage() {
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+function ControlBlock({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-4">
+      <div className="mb-2 flex items-center gap-1.5 text-khaki">
+        <Icon className="size-3.5" />
+        <span className="mono-label text-[0.6rem]">{label}</span>
+      </div>
+      {children}
     </div>
   );
 }
